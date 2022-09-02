@@ -1,0 +1,5 @@
+<launch>
+    <rosparam file="$(find odrive_can_ros_driver)/config/odrive.yaml" />
+    <node name="odrive_can_ros" pkg="odrive_can_ros_driver" type="odrive_node" output="screen" />
+    <include file="$(find odrive_can_ros_driver)/launch/socket_can_bridge.launch" pass_all_args="true" />
+</launch>
