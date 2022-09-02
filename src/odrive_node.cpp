@@ -31,7 +31,7 @@ void canReceivedMessagesCallback(const can_msgs::Frame::ConstPtr& msg) {
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "odrive_can_ros_node");
-	ros::NodeHandle node;
+	ros::NodeHandle node("~");
     node.param<bool>("engage_on_startup", engage_on_startup, DEFAULT_ENGAGE_ON_STARTUP);
     if (engage_on_startup) {
         ROS_INFO("Will engage axises on startup");

@@ -5,7 +5,7 @@ can_rx_topic: "/can/received_messages"
 # can bridge transmit topic
 can_tx_ropic: "/can/sent_messages"
 # axis state update in Hz
-update_rate: 1
+update_rate: 10
 # engage axises on startup
 engage_on_startup: true
 # array of strings representing names of axises
