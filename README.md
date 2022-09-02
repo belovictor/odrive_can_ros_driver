@@ -1,12 +1,14 @@
 # odrive_can_ros_drive
 
+## Overview
+
 ROS driver for the [ODrive](https://odriverobotics.com) motor controller connecting through CAN bus
 
 This is a basic driver node for ROS which builds an interface to control multiple [ODrive](https://odriverobotics.com) motor controllers through a CAN bus. This driver depends on [socketcan_bridge](http://wiki.ros.org/socketcan_bridge) package to connect to physical CAN bus.
 
 Right now driver only supports velocity control mode as this was my prime area of interest for my own project but it can be extended to provide support for other modes of control. I would be happy to accept any pull requests extending funtionality of this driver.
 
-This driver was successfully tested with multiple ODrive controllers on a CAN bus connected to Raspberry Pi 4 through Waveshare CAN board on Ubuntu 18.04 and 20.04 with ROS melodic and noetic.
+This driver was successfully tested with multiple [ODrive](https://odriverobotics.com) controllers on a CAN bus connected to [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) through [Waveshare CAN hat](https://www.waveshare.com/rs485-can-hat.htm) on Ubuntu 18.04 and 20.04 with ROS melodic and noetic.
 
 ## Usage
 
