@@ -1,9 +1,14 @@
 #include "odrive_axis.hpp"
 
 namespace odrive {
-    ODriveAxis::ODriveAxis(ros::NodeHandle *node,  std::string axis_name, int axis_can_id) {
+    ODriveAxis::ODriveAxis(ros::NodeHandle *node,  std::string axis_name, int axis_can_id, std::string direction) {
         axis_name_ = axis_name;
         axis_can_id_ = axis_can_id;
+        if (direction == "forward") {
+            direction_ = 1;
+        } else {
+            direction_ = -1;
+        }
         node->param<std::string>("can_rx_topic", can_rx_topic_, "/can/received_messages");
         node->param<std::string>("can_tx_topic", can_tx_topic_, "/can/sent_messages");
         node->param<double>("update_rate", update_rate_, DEFAULT_UPDATE_RATE);
@@ -61,8 +66,8 @@ namespace odrive {
                 ptrVelocityEstimate[1] = msg->data[5];
                 ptrVelocityEstimate[2] = msg->data[6];
                 ptrVelocityEstimate[3] = msg->data[7];
-                axis_angle_ = (double)positionEstimate * 2 * M_PI;
-                axis_velocity_ = (double)velocityEstimate * 2 * M_PI;
+                axis_angle_ = (double)positionEstimate * 2 * M_PI * direction_;
+                axis_velocity_ = (double)velocityEstimate * 2 * M_PI * direction_;
                 angle_msg.data = axis_angle_;
                 velocity_msg.data = axis_velocity_;
                 axis_angle_pub_.publish(angle_msg);
@@ -94,7 +99,7 @@ namespace odrive {
 
     void ODriveAxis::velocityReceivedMessagesCallback(const std_msgs::Float64::ConstPtr& msg) {
         ROS_DEBUG("Received velocity message");
-        double targetVelocity = msg->data / (2.0 * M_PI);
+        double targetVelocity = msg->data / (2.0 * M_PI) * direction_;
         setInputVelocity(targetVelocity);
     }
 
@@ -139,7 +144,7 @@ namespace odrive {
     void ODriveAxis::setInputVelocity(double velocity) {
         can_msgs::Frame request_msg;
         float vel = (float)velocity;
-        float torq = 0;
+        float torq = 2.5;
         uint8_t *ptrVel;
         uint8_t *ptrTor;
         ptrVel = (uint8_t *)&vel;

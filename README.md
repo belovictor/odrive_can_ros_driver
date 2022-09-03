@@ -40,6 +40,7 @@ Driver is configured with the following configuration paramters:
 | ```engage_on_startup``` | Boolean  | If driver should engage all motors on startup (not implemented yet)                |
 | ```axis_names```        | String[] | Array of names of axises which are then used to name topics corresponding to axises|
 | ```axis_can_ids```      | Int[]    | Array of axis CAN ids as they are configured on ODrive controllers for every axis  |
+| ```axis_directions```   | String[] | Axis direction either ```forward``` or ```backward```, ```backward``` reverses axis control, angle and current velocity |
 
 An example configuration is presented in config/odrive.yaml.
 

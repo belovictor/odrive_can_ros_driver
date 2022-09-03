@@ -59,7 +59,7 @@ namespace odrive {
 
     class ODriveAxis {
         public:
-            ODriveAxis(ros::NodeHandle *node, std::string axis_name, int axis_can_id);
+            ODriveAxis(ros::NodeHandle *node, std::string axis_name, int axis_can_id, std::string direction);
             double getAxisAngle();
             double getAxisVelocity();
             double getAxisVoltage();
@@ -77,6 +77,7 @@ namespace odrive {
             std::string can_rx_topic_;
             std::string can_tx_topic_;
             int axis_can_id_;
+            int direction_;
             bool engage_on_startup_;
             double update_rate_;
             double axis_angle_;

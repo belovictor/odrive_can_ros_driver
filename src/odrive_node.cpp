@@ -4,6 +4,7 @@
 bool engage_on_startup;
 std::vector<std::string> axis_names_list;
 std::vector<int> axis_can_ids_list;
+std::vector<std::string> axis_directions_list;
 std::vector<odrive::ODriveAxis *> odrive_axises;
 ros::Subscriber can_bridge_received_messages_sub;
 
@@ -46,10 +47,17 @@ int main(int argc, char** argv) {
         ROS_ERROR("Can't run without axis_can_ids parameter");
         return -1;
     }
+    if (!node.hasParam("axis_directions")) {
+        ROS_ERROR("Can't run without axis_directions parameter");
+        return -1;
+    }
     node.getParam("axis_names", axis_names_list);
     node.getParam("axis_can_ids", axis_can_ids_list);
-    if (axis_names_list.size() != axis_can_ids_list.size()) {
-        ROS_ERROR("axis_names and axis_can_ids must be of an equal size");
+    node.getParam("axis_directions", axis_directions_list);
+
+    if (!(axis_names_list.size() == axis_can_ids_list.size() && axis_can_ids_list.size() ==
+        axis_directions_list.size())) {
+        ROS_ERROR("axis_names, axis_can_ids and axis_can_directions must be of an equal size");
         return -1;
     }
     if (!stringsAreDistinct(axis_names_list)) {
@@ -61,7 +69,8 @@ int main(int argc, char** argv) {
         return -1;
     }
     for (int i = 0; i < axis_names_list.size(); i++) {
-        ROS_INFO("Adding axis %s with CAN id %d", axis_names_list[i].c_str(), axis_can_ids_list[i]);
+        ROS_INFO("Adding axis %s with CAN id %d and direction %s", axis_names_list[i].c_str(), 
+            axis_can_ids_list[i], axis_directions_list[i].c_str());
         if (axis_names_list[i].length() == 0) {
             ROS_ERROR("axis name can't be empty");
             return -1;
@@ -70,7 +79,8 @@ int main(int argc, char** argv) {
             ROS_ERROR("axis CAN id must be >0");
             return -1;
         }
-        odrive_axises.push_back(new odrive::ODriveAxis(&node, axis_names_list[i], axis_can_ids_list[i]));
+        odrive_axises.push_back(new odrive::ODriveAxis(&node, axis_names_list[i], axis_can_ids_list[i], 
+            axis_directions_list[i]));
     }
 
 	ros::spin();
