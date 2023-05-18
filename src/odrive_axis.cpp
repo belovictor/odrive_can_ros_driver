@@ -13,11 +13,13 @@ namespace odrive {
         node->param<std::string>("can_tx_topic", can_tx_topic_, "/can/sent_messages");
         node->param<double>("update_rate", update_rate_, DEFAULT_UPDATE_RATE);
         node->param<bool>("engage_on_startup", engage_on_startup_, false);
+        node->param<double>("axis_min_velocity", axis_min_velocity_, 0);
         received_messages_sub_ = node->subscribe<can_msgs::Frame>(can_rx_topic_, 1,
             std::bind(&ODriveAxis::canReceivedMessagesCallback, this, std::placeholders::_1));
         sent_messages_pub_ = node->advertise<can_msgs::Frame>(can_tx_topic_, 1);
         target_velocity_sub_ = node->subscribe<std_msgs::Float64>("/" + axis_name_ + "/target_velocity",
             1, std::bind(&ODriveAxis::velocityReceivedMessagesCallback, this, std::placeholders::_1));
+        output_velocity_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/output_velocity", 1);
         axis_angle_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/angle", 1);
         axis_velocity_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/current_velocity", 1);
         axis_voltage_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/voltage", 1);
@@ -50,7 +52,7 @@ namespace odrive {
         uint8_t *ptrPositionEstimate = (uint8_t *)&positionEstimate;
         uint8_t *ptrAxisVoltage = (uint8_t *)&axisVoltage;
         uint8_t *ptrAxisCurrent = (uint8_t *)&axisCurrent;
-        if (NODE_ID == axis_can_id_) {
+        if (NODE_ID == (uint32_t)axis_can_id_) {
             uint32_t CMD_ID = (ID & 0x01F);
             switch (CMD_ID) {
             case ODriveCommandId::HEARTBEAT_MESSAGE:
@@ -98,12 +100,29 @@ namespace odrive {
     }
 
     void ODriveAxis::velocityReceivedMessagesCallback(const std_msgs::Float64::ConstPtr& msg) {
-        ROS_DEBUG("Received velocity message");
-        double targetVelocity = msg->data / (2.0 * M_PI) * direction_;
-        setInputVelocity(targetVelocity);
+        std_msgs::Float64 velocity_msg;
+        double targetVelocity = msg->data;
+        // Check that target velocity is not less then axis minimum velocity in both directions
+        if (targetVelocity != 0 && axis_min_velocity_ != 0) {
+            if (targetVelocity > 0) {
+                if (targetVelocity < axis_min_velocity_) {
+                    targetVelocity = axis_min_velocity_;
+                }
+            } else {
+                if (targetVelocity > (axis_min_velocity_ * -1)) {
+                    targetVelocity = axis_min_velocity_ * -1;
+                }
+            }
+        }
+        // Publish velocity to output_velocity
+        velocity_msg.data = (double)targetVelocity;
+        output_velocity_pub_.publish(velocity_msg);
+        double odriveTargetVelocity = targetVelocity / (2.0 * M_PI) * direction_;
+        setInputVelocity(odriveTargetVelocity);
     }
 
     void ODriveAxis::updateTimerCallback(const ros::TimerEvent& event) {
+        (void)event;
         requestEncoderEstimate();
         requestBusVoltageAndCurrent();
     }
@@ -173,7 +192,8 @@ namespace odrive {
 
 
     uint32_t ODriveAxis::createCanId(int axis_can_id, int command) {
-        uint32_t can_id = (axis_can_id_ << 5) | command;
+        uint32_t can_id;
+        can_id = (axis_can_id << 5) | command;
         return can_id;
     }
 

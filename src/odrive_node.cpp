@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         ROS_ERROR("axis CAN ids must be distinct");
         return -1;
     }
-    for (int i = 0; i < axis_names_list.size(); i++) {
+    for (int i = 0; i < (int)axis_names_list.size(); i++) {
         ROS_INFO("Adding axis %s with CAN id %d and direction %s", axis_names_list[i].c_str(), 
             axis_can_ids_list[i], axis_directions_list[i].c_str());
         if (axis_names_list[i].length() == 0) {

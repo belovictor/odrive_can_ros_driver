@@ -8,6 +8,9 @@ can_tx_ropic: "/can/sent_messages"
 update_rate: 10
 # engage axises on startup
 engage_on_startup: true
+# minimum axis velocity - e.g if set to 1.0 target velocity will be set to this value
+# for both positive and negative velocities (0.5 will become 1.0, -0.5 will become -1.0)
+axis_min_velocity: 1.0
 # array of strings representing names of axises
 axis_names: ["front_left_wheel", "front_right_wheel", "middle_left_wheel", "middle_right_wheel", "rear_left_wheel", "rear_right_wheel"]
 # array of ints representing can ids of axises

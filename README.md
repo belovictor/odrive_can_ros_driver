@@ -38,6 +38,7 @@ Driver is configured with the following configuration paramters:
 | ```can_tx_ropic```      | String   | Topic name through which driver sends CAN messages to socketcan_bridge             |
 | ```update_rate```       | Double   | Update rate in Hz of how frequently driver gets data from ODrive controllers       |
 | ```engage_on_startup``` | Boolean  | If driver should engage all motors on startup (not implemented yet)                |
+| ```axis_min_velocity``` | Double   | Minimum axis velocity, if target velocity is less then this value then it is set to this value (if set to 1.0 target velocity of 0.5 will become 1.0, target velocity of -0.5 will become -1.0) |
 | ```axis_names```        | String[] | Array of names of axises which are then used to name topics corresponding to axises|
 | ```axis_can_ids```      | Int[]    | Array of axis CAN ids as they are configured on ODrive controllers for every axis  |
 | ```axis_directions```   | String[] | Axis direction either ```forward``` or ```backward```, ```backward``` reverses axis control, angle and current velocity |
@@ -61,6 +62,7 @@ When driver is started it creates the following topics for every axis configured
 |```<axis name>/angle```            | ```std_msgs/Float64``` | Outbound  | Angle of the axis in rad               |
 |```<axis name>/current```          | ```std_msgs/Float64``` | Outbound  | Axis current consumption               |
 |```<axis name>/current_velocity``` | ```std_msgs/Float64``` | Outbound  | Current axis angular velocity in rad/s |
+|```<axis name>/output_velocity```  | ```std_msgs/Float64``` | Outbound  | Velocity which is sent to ODrive (will differ from target_velocity if axis_min_velocity is set) |
 |```<axis name>/target_velocity```  | ```std_msgs/Float64``` | Inbound   | Target axis angular velocity in rad/s  |
 |```<axis name>/voltage```          | ```std_msgs/Float64``` | Outbound  | Axis voltage of power supply in V      |
 

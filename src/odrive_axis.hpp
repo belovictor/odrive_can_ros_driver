@@ -68,11 +68,12 @@ namespace odrive {
             ros::Subscriber received_messages_sub_;
             ros::Publisher sent_messages_pub_;
             ros::Subscriber target_velocity_sub_;
+            ros::Publisher output_velocity_pub_;
             ros::Publisher axis_angle_pub_;
-            ros::Publisher axis_velocity_pub_;            
-            ros::Publisher axis_voltage_pub_;            
-            ros::Publisher axis_current_pub_;            
-            ros::Timer axis_update_timer_; 
+            ros::Publisher axis_velocity_pub_;
+            ros::Publisher axis_voltage_pub_;
+            ros::Publisher axis_current_pub_;
+            ros::Timer axis_update_timer_;
             std::string axis_name_;
             std::string can_rx_topic_;
             std::string can_tx_topic_;
@@ -80,6 +81,7 @@ namespace odrive {
             int direction_;
             bool engage_on_startup_;
             double update_rate_;
+            double axis_min_velocity_;
             double axis_angle_;
             double axis_velocity_;
             double axis_voltage_;
