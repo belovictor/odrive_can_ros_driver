@@ -163,7 +163,7 @@ namespace odrive {
     void ODriveAxis::setInputVelocity(double velocity) {
         can_msgs::Frame request_msg;
         float vel = (float)velocity;
-        float torq = 2.5;
+        float torq = 0.0;
         uint8_t *ptrVel;
         uint8_t *ptrTor;
         ptrVel = (uint8_t *)&vel;
