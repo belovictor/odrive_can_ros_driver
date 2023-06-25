@@ -1,7 +1,9 @@
 #include "odrive_node.hpp"
 #include "odrive_axis.hpp"
+#include <signal.h>
 
 bool engage_on_startup;
+bool disengage_on_shutdown;
 std::vector<std::string> axis_names_list;
 std::vector<int> axis_can_ids_list;
 std::vector<std::string> axis_directions_list;
@@ -9,9 +11,8 @@ std::vector<odrive::ODriveAxis *> odrive_axises;
 ros::Subscriber can_bridge_received_messages_sub;
 
 bool intsAreDistinct(std::vector<int> arr) {
-    int n = arr.size();
     std::unordered_set<int> s;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < (int)arr.size(); i++) {
         s.insert(arr[i]);
     }
     return (s.size() == arr.size());
@@ -30,10 +31,24 @@ void canReceivedMessagesCallback(const can_msgs::Frame::ConstPtr& msg) {
     ROS_INFO("I heard from: [%02x]", msg->id);
 }
 
+void onShutdown(int sig) {
+    (void)sig;
+	ROS_INFO("ODrive shutting down");
+	if (disengage_on_shutdown) {
+    	ROS_INFO("ODrive disengaging motors");
+        for (int i = 0; i < (int)odrive_axises.size(); i++) {
+            odrive_axises[i]->disengage();
+        }
+	}
+	ros::shutdown();
+}
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "odrive_can_ros_node");
 	ros::NodeHandle node("~");
+    ROS_INFO("ODrive starting up");
     node.param<bool>("engage_on_startup", engage_on_startup, DEFAULT_ENGAGE_ON_STARTUP);
+    node.param<bool>("disengage_on_shutdown", disengage_on_shutdown, DEFAULT_DISENGAGE_ON_SHUTDOWN);
     if (engage_on_startup) {
         ROS_INFO("Will engage axises on startup");
     } else {
@@ -82,7 +97,7 @@ int main(int argc, char** argv) {
         odrive_axises.push_back(new odrive::ODriveAxis(&node, axis_names_list[i], axis_can_ids_list[i], 
             axis_directions_list[i]));
     }
-
+    signal(SIGINT, onShutdown);
 	ros::spin();
 	return 0;
 }

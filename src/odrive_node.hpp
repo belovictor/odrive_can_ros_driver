@@ -9,5 +9,6 @@
 #define DEFAULT_CAN_INTERFACE       "can10"
 #define DEFAULT_CAN_BITRATE         250000
 #define DEFAULT_ENGAGE_ON_STARTUP   false
+#define DEFAULT_DISENGAGE_ON_SHUTDOWN   true
 
 #endif // ODRIVE_NODE_HPP_

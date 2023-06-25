@@ -8,6 +8,8 @@ can_tx_ropic: "/can/sent_messages"
 update_rate: 10
 # engage axises on startup
 engage_on_startup: true
+# disengage axises on shutdown
+disengage_on_shutdown: true
 # minimum axis velocity - e.g if set to 1.0 target velocity will be set to this value
 # for both positive and negative velocities (0.5 will become 1.0, -0.5 will become -1.0)
 axis_min_velocity: 0.0

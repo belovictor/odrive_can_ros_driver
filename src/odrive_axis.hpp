@@ -64,6 +64,8 @@ namespace odrive {
             double getAxisVelocity();
             double getAxisVoltage();
             double getAxisCurrent();
+            void engage();
+            void disengage();
         private:
             ros::Subscriber received_messages_sub_;
             ros::Publisher sent_messages_pub_;
@@ -93,8 +95,6 @@ namespace odrive {
             void requestBusVoltageAndCurrent();
             void setAxisRequestedState(ODriveAxisState state);
             void setInputVelocity(double velocity);
-            void engage();
-            void disengage();
             uint32_t createCanId(int axis_can_id, int command);
     };
 }
