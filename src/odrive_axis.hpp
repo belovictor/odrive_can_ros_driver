@@ -57,6 +57,25 @@ namespace odrive {
         ENCODER_HALL_PHASE_CALIBRATION = 0x0D
     };
 
+    enum ODriveControlMode {
+        CONTROL_MODE_VOLTAGE_CONTROL = 0x00,
+        CONTROL_MODE_TORQUE_CONTROL = 0x01,
+        CONTROL_MODE_VELOCITY_CONTROL = 0x02,
+        CONTROL_MODE_POSITION_CONTROL = 0x03
+    };
+
+    enum ODriveInputMode {
+        INPUT_MODE_INACTIVE = 0,
+        INPUT_MODE_PASSTHROUGH = 1,
+        INPUT_MODE_VEL_RAMP = 2,
+        INPUT_MODE_POS_FILTER = 3,
+        INPUT_MODE_MIX_CHANNELS = 4,
+        INPUT_MODE_TRAP_TRAJ = 5,
+        INPUT_MODE_TORQUE_RAMP = 6,
+        INPUT_MODE_MIRROR = 7,
+        INPUT_MODE_TUNING = 8
+    };
+
     class ODriveAxis {
         public:
             ODriveAxis(ros::NodeHandle *node, std::string axis_name, int axis_can_id, std::string direction);
@@ -94,6 +113,7 @@ namespace odrive {
             void requestEncoderEstimate();
             void requestBusVoltageAndCurrent();
             void setAxisRequestedState(ODriveAxisState state);
+            void setAxisControlMode(ODriveControlMode control_mode, ODriveInputMode input_mode);
             void setInputVelocity(double velocity);
             uint32_t createCanId(int axis_can_id, int command);
     };

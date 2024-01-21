@@ -14,9 +14,9 @@ namespace odrive {
         node->param<double>("update_rate", update_rate_, DEFAULT_UPDATE_RATE);
         node->param<bool>("engage_on_startup", engage_on_startup_, false);
         node->param<double>("axis_min_velocity", axis_min_velocity_, 0);
-        received_messages_sub_ = node->subscribe<can_msgs::Frame>(can_rx_topic_, 1,
+        received_messages_sub_ = node->subscribe<can_msgs::Frame>(can_rx_topic_, 10,
             std::bind(&ODriveAxis::canReceivedMessagesCallback, this, std::placeholders::_1));
-        sent_messages_pub_ = node->advertise<can_msgs::Frame>(can_tx_topic_, 1);
+        sent_messages_pub_ = node->advertise<can_msgs::Frame>(can_tx_topic_, 10);
         target_velocity_sub_ = node->subscribe<std_msgs::Float64>("/" + axis_name_ + "/target_velocity",
             1, std::bind(&ODriveAxis::velocityReceivedMessagesCallback, this, std::placeholders::_1));
         output_velocity_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/output_velocity", 1);
@@ -24,6 +24,8 @@ namespace odrive {
         axis_velocity_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/current_velocity", 1);
         axis_voltage_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/voltage", 1);
         axis_current_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/current", 1);
+        // Give subscribers and publishers time to settle
+        ros::Duration(0.2).sleep();
         axis_angle_ = 0.0;
         axis_velocity_ = 0.0;
         axis_current_ = 0.0;
@@ -32,6 +34,7 @@ namespace odrive {
             std::bind(&ODriveAxis::updateTimerCallback, this, std::placeholders::_1));
         // TODO: design the logic behind engage on startup behaviour
         if (engage_on_startup_) {
+            ROS_INFO("Axis %02x: engaging", axis_can_id_);
             engage();
         }
     }
@@ -160,6 +163,27 @@ namespace odrive {
         sent_messages_pub_.publish(request_msg);
     }
 
+    void ODriveAxis::setAxisControlMode(ODriveControlMode control_mode, ODriveInputMode input_mode) {
+        can_msgs::Frame request_msg;
+        int32_t requestedMode[2];
+        uint8_t *ptrRequestedMode;
+        requestedMode[0] = (int32_t)control_mode;
+        requestedMode[1] = (int32_t)input_mode;
+        ptrRequestedMode = (uint8_t *)&requestedMode[0];
+        request_msg.id = createCanId(axis_can_id_, ODriveCommandId::SET_CONTROLLER_MODES);
+        request_msg.is_extended = false;
+        request_msg.dlc = 8;
+        request_msg.data[0] = ptrRequestedMode[0];
+        request_msg.data[1] = ptrRequestedMode[1];
+        request_msg.data[2] = ptrRequestedMode[2];
+        request_msg.data[3] = ptrRequestedMode[3];
+        request_msg.data[4] = ptrRequestedMode[4];
+        request_msg.data[5] = ptrRequestedMode[5];
+        request_msg.data[6] = ptrRequestedMode[6];
+        request_msg.data[7] = ptrRequestedMode[7];
+        sent_messages_pub_.publish(request_msg);
+    }
+
     void ODriveAxis::setInputVelocity(double velocity) {
         can_msgs::Frame request_msg;
         float vel = (float)velocity;
@@ -184,10 +208,11 @@ namespace odrive {
 
     void ODriveAxis::engage() {
         setAxisRequestedState(ODriveAxisState::CLOSED_LOOP_CONTROL);
+        setAxisControlMode(ODriveControlMode::CONTROL_MODE_VELOCITY_CONTROL, ODriveInputMode::INPUT_MODE_PASSTHROUGH);
     }
 
     void ODriveAxis::disengage() {
-        setAxisRequestedState(ODriveAxisState::IDLE);
+        // setAxisRequestedState(ODriveAxisState::IDLE);
     }
 
 
