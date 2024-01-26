@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define DEFAULT_UPDATE_RATE 1
-
+#define CAN_PUB_SUB_RETRIES 30
 
 namespace odrive {
     // ODrive command IDs
@@ -76,6 +76,12 @@ namespace odrive {
         INPUT_MODE_TUNING = 8
     };
 
+    enum AxisStatus {
+        STARTUP = 0,
+        OK = 1,
+        ERROR = -1
+    };
+
     class ODriveAxis {
         public:
             ODriveAxis(ros::NodeHandle *node, std::string axis_name, int axis_can_id, std::string direction);
@@ -83,6 +89,7 @@ namespace odrive {
             double getAxisVelocity();
             double getAxisVoltage();
             double getAxisCurrent();
+            AxisStatus getAxisStatus();
             void engage();
             void disengage();
         private:
@@ -107,6 +114,7 @@ namespace odrive {
             double axis_velocity_;
             double axis_voltage_;
             double axis_current_;
+            AxisStatus axis_status_;
             void canReceivedMessagesCallback(const can_msgs::Frame::ConstPtr& msg);
             void velocityReceivedMessagesCallback(const std_msgs::Float64::ConstPtr& msg);
             void updateTimerCallback(const ros::TimerEvent& event);

@@ -94,8 +94,14 @@ int main(int argc, char** argv) {
             ROS_ERROR("axis CAN id must be >0");
             return -1;
         }
-        odrive_axises.push_back(new odrive::ODriveAxis(&node, axis_names_list[i], axis_can_ids_list[i], 
-            axis_directions_list[i]));
+        odrive::ODriveAxis *new_axis = new odrive::ODriveAxis(&node, axis_names_list[i], axis_can_ids_list[i], 
+            axis_directions_list[i]);
+        if (new_axis->getAxisStatus() != odrive::AxisStatus::OK) {
+            ROS_ERROR("Error starting axis, terminating");
+            ros::shutdown();
+            return -1;
+        }
+        odrive_axises.push_back(new_axis);
     }
     signal(SIGINT, onShutdown);
 	ros::spin();

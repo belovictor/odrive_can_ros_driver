@@ -2,8 +2,10 @@
 
 namespace odrive {
     ODriveAxis::ODriveAxis(ros::NodeHandle *node,  std::string axis_name, int axis_can_id, std::string direction) {
+        int can_pub_sub_retries = CAN_PUB_SUB_RETRIES;
         axis_name_ = axis_name;
         axis_can_id_ = axis_can_id;
+        axis_status_ = AxisStatus::STARTUP;
         if (direction == "forward") {
             direction_ = 1;
         } else {
@@ -24,8 +26,22 @@ namespace odrive {
         axis_velocity_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/current_velocity", 1);
         axis_voltage_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/voltage", 1);
         axis_current_pub_ = node->advertise<std_msgs::Float64>("/" + axis_name + "/current", 1);
-        // Give subscribers and publishers time to settle
-        ros::Duration(0.2).sleep();
+        /*
+            Creating publisher or subscriber in ROS does not guarantee they are immediately connected
+            to their peers. When connecting with socketcan_bridge this means a possibility of lost CAN
+            messages during startup. To fix this we wait unless messages pub and sub have at least 1
+            subscriber and publisher. If they doesn't settle in defined time odrive node will terminate.
+            This also guarantees that if socketcan_bridge node fails on startup, odrive node will also fail.
+        */
+        while (!sent_messages_pub_.getNumSubscribers() > 0 || !received_messages_sub_.getNumPublishers() > 0) {
+            ros::Duration(0.1).sleep();
+            can_pub_sub_retries--;
+            if (can_pub_sub_retries == 0) {
+                ROS_ERROR("Axis %02x: timeout waiting for CAN pub/sub", axis_can_id_);
+                axis_status_ = AxisStatus::ERROR;
+                return;
+            }
+        }
         axis_angle_ = 0.0;
         axis_velocity_ = 0.0;
         axis_current_ = 0.0;
@@ -37,6 +53,7 @@ namespace odrive {
             ROS_INFO("Axis %02x: engaging", axis_can_id_);
             engage();
         }
+        axis_status_ = AxisStatus::OK;
     }
 
     void ODriveAxis::canReceivedMessagesCallback(const can_msgs::Frame::ConstPtr& msg) {
@@ -215,6 +232,9 @@ namespace odrive {
         // setAxisRequestedState(ODriveAxisState::IDLE);
     }
 
+    AxisStatus ODriveAxis::getAxisStatus() {
+        return axis_status_;
+    }
 
     uint32_t ODriveAxis::createCanId(int axis_can_id, int command) {
         uint32_t can_id;
